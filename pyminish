@@ -1,3 +1,63 @@
 #!/usr/bin/env python3
 
-print("Hello")
+import os
+import sys
+
+
+def builtin_echo(args: list[str]) -> None:
+    print(" ".join(args))
+
+
+def builtin_exit(_: list[str]) -> None:
+    exit()
+
+
+BUILTIN_COMMAND_FUNC_MAPPING = {
+    "echo": builtin_echo,
+    "exit": builtin_exit,
+}
+
+
+def find_command(command: str) -> str | None:
+    if "/" in command:
+        if os.path.exists(command) and not os.path.isdir(command):
+            return command
+        return None
+
+    for path_dir in os.environ["PATH"].split(":"):
+        command_path = os.path.join(path_dir, command)
+        if os.path.exists(command_path) and not os.path.isdir(command_path):
+            return command_path
+    return None
+
+
+def main() -> None:
+    while True:
+        line = input("> ")
+        tokens = line.split()
+
+        if len(tokens) == 0:
+            continue
+
+        command = tokens[0]
+        args = tokens[1:]
+
+        if command in BUILTIN_COMMAND_FUNC_MAPPING:
+            func = BUILTIN_COMMAND_FUNC_MAPPING[command]
+            func(args)
+        else:
+            command_path = find_command(command)
+            if command_path is None:
+                print(f"${command}: command not found", file=sys.stderr)
+                continue
+
+            pid = os.fork()
+            if pid == 0:
+                command_basename = os.path.basename(command)
+                os.execve(command_path, [command_basename] + args, os.environ)
+            else:
+                os.waitpid(pid, 0)
+
+
+if __name__ == "__main__":
+    main()

@@ -6,6 +6,7 @@
           "version": "3.12"
         }
     },
+    "postStartCommand": "chmod 777 pyminish",
     "customizations": {
         "vscode": {
             "extensions": [
