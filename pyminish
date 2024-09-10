@@ -13,9 +13,14 @@ def builtin_exit(_: list[str]) -> None:
     exit()
 
 
+def buildin_clear(_: list[str]) -> None:
+    print("\033[H\033[2J\033[3J", end="")
+
+
 BUILTIN_COMMAND_FUNC_MAPPING = {
     "echo": builtin_echo,
     "exit": builtin_exit,
+    "clear": buildin_clear,
 }
 
 
@@ -123,7 +128,9 @@ def main() -> None:
         signal.signal(signal.SIGINT, sigint_handler)
 
         while True:
-            line = input("> ")
+            yellow_start = "\033[35m"
+            end_of_color = "\033[0m"
+            line = input(f"🐍 {yellow_start}pyminish{end_of_color} > ")
             interpret_line(line)
     else:
         with open(file_name) as f:
